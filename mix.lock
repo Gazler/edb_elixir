@@ -1,0 +1,4 @@
+%{
+  "edb": {:git, "https://github.com/Gazler/edb.git", "7fad173c3c9876f52ad379284cb2b6b974282aa0", [branch: "feat/edb_dap_language", sparse: "apps/edb"]},
+  "edb_core": {:git, "https://github.com/Gazler/edb.git", "7fad173c3c9876f52ad379284cb2b6b974282aa0", [branch: "feat/edb_dap_language", sparse: "apps/edb_core"]},
+}

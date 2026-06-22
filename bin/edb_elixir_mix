@@ -1,0 +1,74 @@
+#!/bin/sh
+set -eu
+
+usage() {
+  cat <<'USAGE'
+Usage: edb_elixir_mix [--iex] MIX_ARGS...
+
+Runs a Mix command under EDB's Elixir launch setup.
+
+Environment:
+  ELIXIR  Path to elixir. Defaults to "elixir".
+  MIX     Path to mix. Defaults to "mix".
+  IEX     Path to iex, used with --iex. Defaults to "iex".
+USAGE
+}
+
+mode=mix
+
+case "${1-}" in
+  --iex)
+    mode=iex
+    shift
+    ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  --)
+    shift
+    ;;
+esac
+
+if [ "$#" -eq 0 ]; then
+  usage >&2
+  exit 1
+fi
+
+ELIXIR="${ELIXIR:-elixir}"
+MIX="${MIX:-mix}"
+IEX="${IEX:-iex}"
+EDB_ERL_AFLAGS="${ERL_AFLAGS-}"
+
+ERL_AFLAGS="+D" "$ELIXIR" "$MIX" compile
+
+build_path=$(
+  ERL_AFLAGS="+D" "$ELIXIR" "$MIX" run --no-start --no-compile -e 'IO.write(Mix.Project.build_path())'
+)
+
+edb_code_path=""
+
+if [ -d "$build_path/lib" ]; then
+  for ebin in "$build_path"/lib/*/ebin; do
+    if [ -d "$ebin" ]; then
+      edb_code_path="$edb_code_path -pa $ebin"
+    fi
+  done
+fi
+
+ERL_AFLAGS="$edb_code_path $EDB_ERL_AFLAGS"
+export ERL_AFLAGS
+
+case "$mode" in
+  mix)
+    exec "$ELIXIR" "$MIX" "$@"
+    ;;
+  iex)
+    case "$MIX" in
+      */*) PATH="$(dirname "$MIX"):$PATH" ;;
+    esac
+
+    export PATH
+    exec "$IEX" -S mix "$@"
+    ;;
+esac

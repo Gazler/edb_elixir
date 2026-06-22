@@ -1,0 +1,10 @@
+/_build/
+/cover/
+/deps/
+/doc/
+/.fetch
+/.elixir_ls/
+/.expert/
+erl_crash.dump
+*.ez
+edb_elixir
